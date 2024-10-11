@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Netflix-style Background</title>
+    <title>TrendFlix Background</title>
     <style>
         body, html {
             margin: 0;
@@ -25,7 +25,7 @@
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 0.5rem;
             padding: 0.5rem;
-            animation: scroll 60s linear infinite;
+            animation: scroll 120s linear infinite;
         }
         @keyframes scroll {
             0% { transform: translateY(0); }
@@ -63,14 +63,14 @@
     </div>
 
     <script>
-        const TMDB_API_KEY = 'd77a4def5cf5c303bb02856b95b85abc';
+        const TMDB_API_KEY = 'b29bfe548cc2a3e4225effbd54ef0fda';
         const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
         const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w200';
 
-        async function fetchTrendingItems() {
+        async function fetchTrendingItems(page = 1) {
             try {
                 const response = await fetch(
-                    `${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}`
+                    `${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}&page=${page}`
                 );
                 const data = await response.json();
                 return data.results;
@@ -78,6 +78,15 @@
                 console.error('Error fetching trending items:', error);
                 return [];
             }
+        }
+
+        async function fetchMultiplePages(numPages = 5) {
+            let allItems = [];
+            for (let i = 1; i <= numPages; i++) {
+                const items = await fetchTrendingItems(i);
+                allItems = allItems.concat(items);
+            }
+            return allItems;
         }
 
         function createPosterElement(item) {
@@ -107,10 +116,16 @@
 
         async function initBackground() {
             const posterGrid = document.getElementById('posterGrid');
-            const trendingItems = await fetchTrendingItems();
+            const trendingItems = await fetchMultiplePages(5);  // Fetch 5 pages
 
-            // Fill the grid with enough items to cover the screen
-            while (posterGrid.children.length < 100) {
+            // Fill the grid with all fetched items
+            trendingItems.forEach(item => {
+                const posterElement = createPosterElement(item);
+                posterGrid.appendChild(posterElement);
+            });
+
+            // If we still need more items to fill the screen, repeat the list
+            while (posterGrid.children.length < 1000) {
                 trendingItems.forEach(item => {
                     const posterElement = createPosterElement(item);
                     posterGrid.appendChild(posterElement);
